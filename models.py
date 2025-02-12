@@ -55,3 +55,22 @@ class Attendance(db.Model):
     status = db.Column(db.Boolean, default=False)
     marked_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    
+    
+    
+def delete_student(student_id):
+    student = Student.query.get(student_id)
+    
+    if not student:
+        return "Student not found", 404
+
+    # Delete related attendance records first
+    Attendance.query.filter_by(student_id=student_id).delete()
+    db.session.commit()
+
+    # Now, delete the student
+    db.session.delete(student)
+    db.session.commit()
+
+    return "Student deleted successfully", 200
