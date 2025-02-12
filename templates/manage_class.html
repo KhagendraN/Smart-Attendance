@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">Manage Class - {{ class_obj.name }}</h1>
+        </div>
+        <div class="col text-end">
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteClassModal">
+                Delete Class
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Add Subject Form -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Add Subject</h5>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="add_subject">
+                        <div class="mb-3">
+                            <label for="subject_name" class="form-label">Subject Name</label>
+                            <input type="text" class="form-control" id="subject_name" name="subject_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="teacher_count" class="form-label">Number of Teachers Required</label>
+                            <input type="number" class="form-control" id="teacher_count" name="teacher_count" 
+                                   min="1" max="10" value="1" required>
+                        </div>
+                        <div id="teacherSelections" class="mb-3">
+                            <label class="form-label">Add Teachers</label>
+                            <div id="teacherList">
+                                <!-- Teacher input boxes will be added here dynamically -->
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Subject</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Student Form -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Add Student</h5>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="add_student">
+                        <div class="mb-3">
+                            <label for="student_name" class="form-label">Student Name</label>
+                            <input type="text" class="form-control" id="student_name" name="student_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="roll_number" class="form-label">Roll Number</label>
+                            <input type="text" class="form-control" id="roll_number" name="roll_number" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Subjects -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Subjects</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Teachers</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subject in class_obj.subjects %}
+                        <tr>
+                            <td>{{ subject.name }}</td>
+                            <td>
+                                {% for teacher in subject.teachers %}
+                                <span class="badge bg-secondary me-1">{{ teacher.username }}</span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="delete_subject">
+                                    <input type="hidden" name="subject_id" value="{{ subject.id }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Students -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Students</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Roll Number</th>
+                            <th>Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in class_obj.students|sort(attribute='roll_number') %}
+                        <tr>
+                            <td>{{ student.roll_number }}</td>
+                            <td>{{ student.name }}</td>
+                            <td>
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="delete_student">
+                                    <input type="hidden" name="student_id" value="{{ student.id }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Class Modal -->
+<div class="modal fade" id="deleteClassModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Class</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this class? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" class="d-inline">
+                    <input type="hidden" name="action" value="delete_class">
+                    <button type="submit" class="btn btn-danger">Delete Class</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('teacher_count').addEventListener('change', function() {
+    updateTeacherSelections(this.value);
+});
+
+function updateTeacherSelections(count) {
+    const container = document.getElementById('teacherList');
+    container.innerHTML = ''; // Clear existing selections
+
+    for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.className = 'mb-2';
+        div.innerHTML = `
+            <div class="input-group">
+                <input type="text" class="form-control" name="teacher_names[]" 
+                       placeholder="Teacher ${i + 1} Name" required>
+                <input type="email" class="form-control" name="teacher_emails[]" 
+                       placeholder="Teacher ${i + 1} Email" required>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+}
+
+// Initialize teacher selections
+updateTeacherSelections(document.getElementById('teacher_count').value);
+</script>
+{% endblock %}

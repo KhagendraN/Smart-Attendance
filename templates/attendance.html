@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">Mark Attendance - {{ class_obj.name }}</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" 
+                               value="{{ today }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="subject_id" class="form-label">Subject</label>
+                        <select class="form-select" id="subject_id" name="subject_id" required>
+                            <option value="">Select Subject</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.id }}">{{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="teacher_id" class="form-label">Teacher</label>
+                        <select class="form-select" id="teacher_id" name="teacher_id" required>
+                            <option value="">Select Teacher</option>
+                        </select>
+                    </div>
+                </div>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Roll Number</th>
+                            <th>Name</th>
+                            <th>Attendance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in class_obj.students %}
+                        <tr>
+                            <td>{{ student.roll_number }}</td>
+                            <td>{{ student.name }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="student_{{ student.id }}" 
+                                           id="present_{{ student.id }}" value="present" required>
+                                    <label class="btn btn-outline-success" for="present_{{ student.id }}">
+                                        Present
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="student_{{ student.id }}" 
+                                           id="absent_{{ student.id }}" value="absent">
+                                    <label class="btn btn-outline-danger" for="absent_{{ student.id }}">
+                                        Absent
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Save Attendance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Update teachers dropdown based on selected subject
+document.getElementById('subject_id').addEventListener('change', function() {
+    const subjectId = this.value;
+    const teacherSelect = document.getElementById('teacher_id');
+    teacherSelect.innerHTML = '<option value="">Select Teacher</option>';
+
+    if (subjectId) {
+        fetch(`/api/subject/${subjectId}/teachers`)
+            .then(response => response.json())
+            .then(teachers => {
+                teachers.forEach(teacher => {
+                    const option = document.createElement('option');
+                    option.value = teacher.id;
+                    option.textContent = teacher.username;
+                    teacherSelect.appendChild(option);
+                });
+            });
+    }
+});
+</script>
+{% endblock %}
