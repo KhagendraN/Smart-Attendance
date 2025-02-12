@@ -11,3 +11,4 @@ pandas
 qrcode
 Werkzeug
 gunicorn
+psycopg2-binary 
