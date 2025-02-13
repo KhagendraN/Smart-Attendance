@@ -124,7 +124,8 @@ class GoogleSheetsManager:
         self.SPREADSHEET_ID = os.environ.get('GOOGLE_SHEET_ID')
 
     def get_service(self):
-        creds_info = json.loads(os.environ.get('GOOGLE_SERVICE_ACCOUNT_INFO', '{}'))
+        #creds_info = json.loads(os.environ.get('GOOGLE_SERVICE_ACCOUNT_INFO', '{}'))
+        creds_info = json.loads('/etc/secrets/credentials.json')
         if not creds_info:
             raise ValueError("Google service account credentials not found")
 
